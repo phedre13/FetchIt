@@ -1,0 +1,250 @@
+#!/usr/bin/python2.7
+
+###
+# I am fully aware that there is a bunch of bad in this.
+# This script was originally an on-the-fly grabber for one specific task, so the hardcoding was irrelevant.
+# My choice to move this into public domain was made partially for CONSTRUCTIVE criticism.
+# Don't tell me how I'm stupid.  Help me learn by offering legitimate responses to things that I know are not quite correct in this script.
+# Have fun.  Don't get in trouble!
+###
+
+import urllib2
+import re
+import sys
+import csv
+import os
+
+# In the future, this will be where we grab search parameters for the user.
+def RunProgram():
+
+    FetchMain()
+    FindNumbers()
+    FindTV()
+    DestroyFiles()
+
+# Grab the source code for the start-point page.  It is in turn used to locate the secondary set of pages.
+def FetchMain():
+
+    userAgrees = UserUsesProgram()
+
+    if userAgrees is False:
+        DestroyFiles()
+        sys.exit(0)
+
+    else:
+        #The url for mainResponse will eventually become a user-defined, string variable.
+        mainResponse = urllib2.urlopen('http://www.remotecentral.com/cgi-bin/codes/')
+        mainPage = mainResponse.read()
+        print mainPage
+        #Assigns the True/False returned by VerifyFetch to the variable userConfirms.
+        userConfirms = VerifyFetch()
+
+        #Upon confirmation, we call MakeMainFile().
+        if userConfirms is True:
+            MakeMainFile(mainPage)
+
+        else:
+            #This assumes that the user is entering the link to set the variable.
+            print('Please, verify my primary link for accuracy and its IP Address for functionality.')
+            sys.exit(0)
+
+
+#Here, the user is able to verify that the source code for the primary page matches the page they are looking for.
+#It isn't really necessary to read the whole of the source code, so much as glance to see that it's the correct site.
+def VerifyFetch():
+
+    userConfirms = raw_input('Is this the expected output? (y/n):  ')
+    userConfirms = userConfirms.strip().lower()
+
+    if userConfirms == 'y':
+        print 'yes'
+        return True
+    elif userConfirms == 'Y':
+        print 'Yes'
+        return True
+    else:
+        print 'no'
+        return False
+
+#Parse for and create title of file.  
+def MakeMainFile(mainPage):
+
+    titleText = re.search('<title>(.*)</title>', mainPage)
+    titleSplitText = titleText.group(1)
+    mainTitle = re.sub(r'[ :]', '', titleSplitText)
+    mainFile = open(mainTitle, 'w+')
+    mainFile.write(mainPage)
+    mainFile.close()
+    ParseMainFile(mainTitle)
+
+def UserUsesProgram():
+
+    userUsing = raw_input('This scraper was not intended for illegal activities.  If you choose to manipulate this script such that it is usable for such things, it is no longer the Intellectual Property of Succubus Softwares/Jessica Awtry.  Please, press y to continue or n to terminate the script.')
+
+    if userUsing == 'y':
+        return True
+    elif userUsing == 'Y':
+        return True
+    else:
+        return False
+
+def ParseMainFile(mainTitle):
+
+    stem = 'http://www.remotecentral.com/cgi-bin/codes'
+
+    with open(mainTitle, 'r+') as parsingFile:
+        #x is my counter. If you don't like it...
+        #x is still my counter.
+        x = 0
+        for line in parsingFile.readlines():
+            findUrlBranch = re.search('/cgi-bin/codes(.*)/">', line)
+            if findUrlBranch == None:
+                print('Skipping Line: '+str(x))
+            else:
+                parseUrlBranch = findUrlBranch.group(1)
+                print('Branch:  '+parseUrlBranch)
+                scndPageUrl = stem+parseUrlBranch+'/'
+                scndPageResponse = urllib2.urlopen(scndPageUrl)
+                scndPage = scndPageResponse.read()
+                if scndPageResponse == None:
+                    doNothing = 'Do nothing.'
+                else:
+                    scndPageTitle = 'urlBranchlvl2_'+str(x)
+                    scndPageFile = open(scndPageTitle, 'w+')
+                    scndPageFile.write(scndPage)
+                    scndPageFile.close()
+                    ParseSecondary(scndPageTitle)
+
+            x += 1
+
+def ParseSecondary(scndPageTitle):
+
+    with open(scndPageTitle, 'r+') as parsingFile:
+        x = 0
+        for line in parsingFile.readlines():
+            parseUrlBranch = re.search('href="(.*)/"', line)
+            # 'None' parameter needs to be handled, so do nothing.
+            if parseUrlBranch == None:
+                nothing = 'do nothing'
+            else:
+                possibleMatch = parseUrlBranch.group(1)
+                PossibleMatch(possibleMatch)
+            x += 1
+
+def PossibleMatch(possibleMatch):
+
+    stem = 'http://www.remotecentral.com'
+    findUrl = stem+possibleMatch+'/'
+
+    with open('PossibleMatches', 'a') as usingFile:
+        try:
+            wellDoesIt = urllib2.urlopen(findUrl)
+            urlList = wellDoesIt.read()
+            usingFile.write(possibleMatch+'\n')
+            usingFile.close()
+        except urllib2.HTTPError:
+            print('404 Error for '+findUrl)
+        except urllib2.URLError:
+            print('URL Error for '+findUrl)
+
+def FindNumbers():
+	
+    stem = 'http://www.remotecentral.com'
+    usingFile = open('PossibleMatches', 'r+')
+    parsingFile = usingFile.readlines()
+
+    for line in parsingFile:
+        findNumbers = 'page'
+        if findNumbers in line:
+            urlPiece = line.strip('\n')
+            tryUrl = stem+urlPiece+'/'
+            try:
+                nextPages = urllib2.urlopen(tryUrl)
+                foundPages = nextPages.read()
+                nextMatches = open('NextMatches', 'a')
+                nextMatches.write(foundPages+'\n')
+                nextMatches.close()
+                usingFile.close()
+            except urllib2.HTTPError:
+                print('404 Error for '+tryUrl)
+            except urllib2.URLError:
+                print('URL Error for '+tryUrl)
+
+def FindTV():
+
+    yourDir = raw_input('Enter the directory in which this script resides, please.')
+    usingFile = 'PossibleMatches'
+    secondaryFile = 'NextMatches'
+    newLine = '\n'
+
+    with open(usingFile, 'r+') as thisFile:
+        for line in thisFile.readlines():
+            parseURL = re.search('/cgi(.*)\n', line)
+            if parseURL == None:
+                nothing = 'do nothing'
+            else:
+                actualData = parseURL.group(1)
+                if 'tv' in actualData or 'TV' in actualData:
+                    print('we found a tv')
+                    with open('TVMatches', 'a') as tvMatch:
+                        tvMatch.write(actualData+newLine)
+                else:
+                    doNothing = 'do nothing'	
+
+    with open(secondaryFile, 'r+') as thatFile:
+        for nLine in thatFile.readlines():
+            parseURL = re.search('/cgi(.*)\n', nLine)
+            if parseURL == None:
+                nothing = 'do nothing'
+            else:
+                actualData = parseURL.group(1)
+                if 'tv' in actualData or 'TV' in actualData:
+                    with open('TVMatches', 'a') as tvMatch:
+                        tvMatch.write(actualData+newLine)
+                else:
+                   doNothing = 'do nothing'
+
+    for file in os.listdir(yourDir):
+        if re.search('urlBranch(.*)', file):
+            with open(file, 'r+') as thereFile:
+                for uLine in thereFile.readlines():
+                    parseTV = re.search('href"(.*)/">', uLine)
+                    if parseTV == None:
+                        nothing = 'do nothing again'
+                    else:
+                        actualData = parseURL.group(1)
+                        if 'tv' in actualData or 'TV' in actualData:
+                            with open('TVMatches', 'a') as tvMatch:
+                                tvMatch.write(actualData+newLine)
+                        else:
+                            doNothing = 'do nothing'
+
+#def ParseTVMatches():
+
+#    with open('TVMatches', 'r+') as usingFile:
+#        urlPiece = re.search('cgi(.*)', usingFile)
+
+def DestroyFiles():
+
+    destroyThings = raw_input('Do you wish to destroy your garbage?')
+
+    if destroyThings == 'y':
+        yourDir = raw_input('Enter the directory in which the generated files are stored.')
+        for file in os.listdir(yourDir):
+            if re.search('urlBranch(.*)', file):
+                os.remove(os.path.join(yourDir, file))
+            else:
+                 doNothing = 'do nothing'
+
+    elif destroyThings == 'Y':
+        yourDir = raw_input('Enter the directory in which the generated files are stored.')
+        for file in os.listdir(yourDir):
+            if re.search('urlBranch(.*)', file):
+                os.remove(os.path.join(yourDir, file))
+            else:
+		nothing = 'another do nothing'
+    else:
+        sys.exit(0)
+
+if __name__ == '__main__':
+    sys.exit(RunProgram())
