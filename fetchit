@@ -59,9 +59,9 @@ def VerifyFetch():
     if userConfirms == 'y':
         print 'yes'
         return True
-    elif userConfirms == 'Y':
-        print 'Yes'
-        return True
+    #elif userConfirms == 'Y':
+        #print 'Yes'
+        #return True
     else:
         print 'no'
         return False
@@ -198,6 +198,7 @@ def FindTV():
                 nothing = 'do nothing'
             else:
                 actualData = parseURL.group(1)
+                print(actualData)
                 if 'tv' in actualData or 'TV' in actualData:
                     with open('TVMatches', 'a') as tvMatch:
                         tvMatch.write(actualData+newLine)
@@ -213,6 +214,7 @@ def FindTV():
                         nothing = 'do nothing again'
                     else:
                         actualData = parseURL.group(1)
+                        print(actualData)
                         if 'tv' in actualData or 'TV' in actualData:
                             with open('TVMatches', 'a') as tvMatch:
                                 tvMatch.write(actualData+newLine)
