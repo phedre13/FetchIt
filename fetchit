@@ -20,6 +20,7 @@ def RunProgram():
     FetchMain()
     FindNumbers()
     FindTV()
+    CreateHexesFiles()
     DestroyFiles()
 
 # Grab the source code for the start-point page.  It is in turn used to locate the secondary set of pages.
@@ -193,7 +194,7 @@ def FindTV():
 
     with open(secondaryFile, 'r+') as thatFile:
         for nLine in thatFile.readlines():
-            parseURL = re.search('/cgi(.*)\n', nLine)
+            parseURL = re.search('/cgi(.*)/"', nLine)
             if parseURL == None:
                 nothing = 'do nothing'
             else:
@@ -209,7 +210,7 @@ def FindTV():
         if re.search('urlBranch(.*)', file):
             with open(file, 'r+') as thereFile:
                 for uLine in thereFile.readlines():
-                    parseTV = re.search('href"(.*)/">', uLine)
+                    parseTV = re.search('href"(.*)/"', uLine)
                     if parseTV == None:
                         nothing = 'do nothing again'
                     else:
@@ -221,10 +222,23 @@ def FindTV():
                         else:
                             doNothing = 'do nothing'
 
-#def ParseTVMatches():
+def CreateHexesFiles():
 
-#    with open('TVMatches', 'r+') as usingFile:
-#        urlPiece = re.search('cgi(.*)', usingFile)
+    stem = ('http://www.remotecentral.com/cgi')
+    x = 1
+
+    with open('TVMatches', 'r+') as usingFile:
+        for line in usingFile:
+            usingURL = stem+line
+            try:
+                codeURL = urllib2.urlopen(usingURL)
+                codeSource = codeURL.read()
+                fileName = 'Hexes'+str(x)
+                with open(fileName, 'w+') as usingFile:
+                    usingFile.write(codeSource)
+                    x += 1
+            except urllib2.HTTPError:
+                print('HTTP Error')
 
 def DestroyFiles():
 
