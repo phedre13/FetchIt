@@ -186,7 +186,6 @@ def FindTV():
             else:
                 actualData = parseURL.group(1)
                 if 'tv' in actualData or 'TV' in actualData:
-                    print('we found a tv')
                     with open('TVMatches', 'a') as tvMatch:
                         tvMatch.write(actualData+newLine)
                 else:
@@ -245,16 +244,14 @@ def CreateHexesFiles():
 def ParseHexesFiles():
 
     yourDir = raw_input('Enter the directory in which the generated files are stored.')
-    searchTerms = ['"><b>power', '"><b>on', '"><b>off']
+    searchTerms = ['Power', 'On', 'Off']
 
     for file in os.listdir(yourDir):
         if re.search('Hexes(.*)', file):
             with open(file, 'r+') as parsingFile:
-                for line in parsingFile:
+                for line in parsingFile.readlines():
                     for word in searchTerms:
-                        searchFor = word+'(.*)\n'
-                        searchFile = re.search(searchFor, line)
-                        print(searchFile)
+                        searchFile = re.search(word+'(.*)', line)
                         if searchFile == None:
                             doNothing = 'do nothing'
                         else:
