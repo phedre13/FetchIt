@@ -257,7 +257,7 @@ def ParseHexesFiles():
                         else:
                             with open('Results', 'a+') as resultFile:
                                 foundTerms = searchFile.group(1)
-                                resultFile.write(foundTerms)
+                                resultFile.write(foundTerms+'\n')
         else:
             doNothing = 'do nothing again'
 
