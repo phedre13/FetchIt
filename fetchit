@@ -16,6 +16,8 @@ import os
 
 # In the future, this will be where we grab search parameters for the user.
 def RunProgram():
+    global yourDir
+    global stem
 
     FetchMain()
     FindNumbers()
@@ -24,9 +26,19 @@ def RunProgram():
     ParseHexesFiles()
     DestroyFiles()
 
+def UserUsesProgram():
+
+    disclaimer = raw_input('This scraper was not intended for illegal activities.  If you choose to manipulate this script such that it is usable for such things, it is no longer the Intellectual Property of Succubus Softwares/Jessica Awtry.  Please, press y to continue or n to terminate the script.')
+    userConfirms = userUsing.strip().lower()
+
+    if userConfirms == 'y':
+        return True
+    else:
+        return False
+
 # Grab the source code for the start-point page.  It is in turn used to locate the secondary set of pages.
 def FetchMain():
-
+    global stem
     userAgrees = UserUsesProgram()
 
     if userAgrees is False:
@@ -34,8 +46,9 @@ def FetchMain():
         sys.exit(0)
 
     else:
+    	stem = raw_input('Please, enter the main url stem from which you wish to parse information.')
         #The url for mainResponse will eventually become a user-defined, string variable.
-        mainResponse = urllib2.urlopen('http://www.remotecentral.com/cgi-bin/codes/')
+        mainResponse = urllib2.urlopen(stem)
         mainPage = mainResponse.read()
         print mainPage
         #Assigns the True/False returned by VerifyFetch to the variable userConfirms.
@@ -71,6 +84,7 @@ def VerifyFetch():
 #Parse for and create title of file.  
 def MakeMainFile(mainPage):
 
+    print('Parsing title information...')
     titleText = re.search('<title>(.*)</title>', mainPage)
     titleSplitText = titleText.group(1)
     mainTitle = re.sub(r'[ :]', '', titleSplitText)
@@ -79,26 +93,17 @@ def MakeMainFile(mainPage):
     mainFile.close()
     ParseMainFile(mainTitle)
 
-def UserUsesProgram():
-
-    userUsing = raw_input('This scraper was not intended for illegal activities.  If you choose to manipulate this script such that it is usable for such things, it is no longer the Intellectual Property of Succubus Softwares/Jessica Awtry.  Please, press y to continue or n to terminate the script.')
-    userConfirms = userUsing.strip().lower()
-
-    if userConfirms == 'y':
-        return True
-    else:
-        return False
-
 def ParseMainFile(mainTitle):
 
-    stem = 'http://www.remotecentral.com/cgi-bin/codes'
+    global stem
 
     with open(mainTitle, 'r+') as parsingFile:
         #x is my counter. If you don't like it...
         #x is still my counter.
         x = 0
         for line in parsingFile.readlines():
-            findUrlBranch = re.search('/cgi-bin/codes(.*)/">', line)
+            searchTerm = raw_input('Searching for Url branches, please insert your search terms.  Should be in typical url directory format with (.*) for variable terms.')
+            findUrlBranch = re.search(searchTerm, line)
             if findUrlBranch == None:
                 print('Skipping Line: '+str(x))
             else:
@@ -122,6 +127,7 @@ def ParseSecondary(scndPageTitle):
 
     with open(scndPageTitle, 'r+') as parsingFile:
         x = 0
+        print('Parsing for URLs available.')
         for line in parsingFile.readlines():
             parseUrlBranch = re.search('href="(.*)/"', line)
             # 'None' parameter needs to be handled, so do nothing.
@@ -134,7 +140,8 @@ def ParseSecondary(scndPageTitle):
 
 def PossibleMatch(possibleMatch):
 
-    stem = 'http://www.remotecentral.com'
+    global stem
+    stem = raw_input('Enter the base url for the website from which we are parsing various segments.')
     findUrl = stem+possibleMatch+'/'
 
     with open('PossibleMatches', 'a') as usingFile:
@@ -150,7 +157,7 @@ def PossibleMatch(possibleMatch):
 
 def FindNumbers():
 	
-    stem = 'http://www.remotecentral.com'
+    global stem
     usingFile = open('PossibleMatches', 'r+')
     parsingFile = usingFile.readlines()
 
@@ -173,7 +180,8 @@ def FindNumbers():
 
 def FindTV():
 
-    yourDir = raw_input('Enter the directory in which this script resides, please.')
+    #Enhancements for increased useage purposes, left off with this function.
+    global yourDir
     usingFile = 'PossibleMatches'
     secondaryFile = 'NextMatches'
     newLine = '\n'
@@ -243,7 +251,7 @@ def CreateHexesFiles():
 
 def ParseHexesFiles():
 
-    yourDir = raw_input('Enter the directory in which the generated files are stored.')
+    global yourDir
     searchTerms = ['Power', 'On', 'Off']
 
     for file in os.listdir(yourDir):
@@ -263,11 +271,11 @@ def ParseHexesFiles():
 
 def DestroyFiles():
 
+    global yourDir
     destroyThings = raw_input('Do you wish to destroy your garbage?')
     userConfirms = destroyThings.strip().lower()
 
     if destroyThings == 'y':
-        yourDir = raw_input('Enter the directory in which the generated files are stored.')
         for file in os.listdir(yourDir):
             if re.search('urlBranch(.*)', file):
                 os.remove(os.path.join(yourDir, file))
