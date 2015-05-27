@@ -29,7 +29,7 @@ def RunProgram():
 def UserUsesProgram():
 
     disclaimer = raw_input('This scraper was not intended for illegal activities.  If you choose to manipulate this script such that it is usable for such things, it is no longer the Intellectual Property of Succubus Softwares/Jessica Awtry.  Please, press y to continue or n to terminate the script.')
-    userConfirms = userUsing.strip().lower()
+    userConfirms = disclaimer.strip().lower()
 
     if userConfirms == 'y':
         return True
