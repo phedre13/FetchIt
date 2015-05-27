@@ -46,7 +46,7 @@ def FetchMain():
         sys.exit(0)
 
     else:
-    	stem = raw_input('Please, enter the main url stem from which you wish to parse information.')
+    	stem = raw_input('Please, enter the main page from the website where you wish to parse information. Example: if the end goal is somewhere on Etsy's website, you would enter www.etsy.com.')
         #The url for mainResponse will eventually become a user-defined, string variable.
         mainResponse = urllib2.urlopen(stem)
         mainPage = mainResponse.read()
