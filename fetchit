@@ -42,7 +42,6 @@ def FetchMain():
     userAgrees = UserUsesProgram()
 
     if userAgrees is False:
-        DestroyFiles()
         sys.exit(0)
 
     else:
