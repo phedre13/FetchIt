@@ -97,8 +97,7 @@ def ParseMainFile(mainTitle):
     global stem
 
     with open(mainTitle, 'r+') as parsingFile:
-        #x is my counter. If you don't like it...
-        #x is still my counter.
+        #x is my counter.
         x = 0
         for line in parsingFile.readlines():
             searchTerm = raw_input('Searching for Url branches, please insert your search terms.  Should be in typical url directory format with (.*) for variable terms.')
